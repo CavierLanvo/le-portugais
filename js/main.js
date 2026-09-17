@@ -242,9 +242,7 @@
     fetch(API_URL)
       .then((res) => (res.ok ? res.json() : null))
       .then((payload) => {
-        const items = payload && payload.success && Array.isArray(payload.data && payload.data.items)
-          ? payload.data.items
-          : null;
+        const items = payload && Array.isArray(payload.items) ? payload.items : null;
         if (!items || items.length === 0) return; // pas de menu publié : section laissée cachée
 
         items.forEach((item) => {
