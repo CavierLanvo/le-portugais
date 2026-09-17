@@ -262,6 +262,24 @@
   </section>
 
   <!-- =========================================================
+       MENU DU JOUR
+       Section entièrement dynamique : masquée par défaut, affichée
+       par js/main.js uniquement si un menu du jour est publié côté
+       CAVIER pour aujourd'hui. Aucun plat n'est écrit en dur ici —
+       voir renderDailyMenu() dans js/main.js.
+       ========================================================= -->
+  <section class="section-pad" id="menu-du-jour" aria-labelledby="menu-du-jour-title" data-render-section="menu-du-jour" hidden>
+    <div class="wrap">
+      <div class="reveal">
+        <p class="eyebrow">Aujourd'hui</p>
+        <h2 id="menu-du-jour-title" class="h-display h-l" style="margin-top:18px;">Le menu du jour.</h2>
+      </div>
+
+      <div class="menu-list" data-render="menu-du-jour" style="margin-top:32px;"></div>
+    </div>
+  </section>
+
+  <!-- =========================================================
        LA CARTE
        ========================================================= -->
   <section class="section-pad bg-soft" id="carte" aria-labelledby="carte-title">

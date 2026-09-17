@@ -209,6 +209,72 @@
     });
   })();
 
+  /* ---------- Render: Menu du jour (dynamique, API CAVIER) ---------------
+     Le seul contenu de cette page qui n'est pas dans js/data.js : ces plats
+     changent plusieurs fois par jour depuis l'espace client CAVIER, donc ils
+     sont récupérés en direct, jamais écrits en dur ici. La carte permanente
+     ci-dessus (renderMenu) n'est pas concernée et continue de fonctionner
+     exactement comme avant, que cet appel réussisse ou non.
+
+     Comportement volontaire :
+       - la section <section id="menu-du-jour"> démarre avec l'attribut
+         HTML `hidden` (voir index.html) ;
+       - si l'appel réussit et renvoie au moins un plat, on remplit la liste
+         et on retire `hidden` ;
+       - dans tous les autres cas (aucun menu publié aujourd'hui — 404 côté
+         API —, erreur réseau, réponse inattendue), la section reste cachée :
+         le site se comporte exactement comme s'il n'y avait jamais eu de
+         section "menu du jour", sans message d'erreur visible.
+  ------------------------------------------------------------------------ */
+  (function renderDailyMenu() {
+    const section = document.getElementById("menu-du-jour");
+    const host = document.querySelector("[data-render='menu-du-jour']");
+    if (!section || !host) return;
+
+    const API_URL = "https://api.cavier.ch/api/public/businesses/le-portugais-test/menu";
+
+    function formatPriceChf(value) {
+      if (typeof value !== "number" || !isFinite(value)) return "";
+      const hasCents = Math.round(value * 100) % 100 !== 0;
+      return `${hasCents ? value.toFixed(2) : String(value)} CHF`;
+    }
+
+    fetch(API_URL)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((payload) => {
+        const items = payload && payload.success && Array.isArray(payload.data && payload.data.items)
+          ? payload.data.items
+          : null;
+        if (!items || items.length === 0) return; // pas de menu publié : section laissée cachée
+
+        items.forEach((item) => {
+          if (!item || !item.name) return;
+          const row = el("div", "menu-item");
+          const price = formatPriceChf(item.priceChf);
+          row.innerHTML = `
+            <div class="menu-item-main">
+              <p class="menu-item-name"></p>
+              ${item.description ? `<p class="menu-item-desc"></p>` : ""}
+            </div>
+            ${price ? `<span class="menu-item-price"></span>` : ""}
+          `;
+          // Texte affecté après coup (jamais via innerHTML) : ce contenu
+          // vient de l'API publique, pas de js/data.js — même prudence que
+          // pour tout texte externe, on évite l'injection HTML.
+          row.querySelector(".menu-item-name").textContent = item.name;
+          if (item.description) row.querySelector(".menu-item-desc").textContent = item.description;
+          if (price) row.querySelector(".menu-item-price").textContent = price;
+          host.appendChild(row);
+        });
+
+        if (host.children.length > 0) section.hidden = false;
+      })
+      .catch(() => {
+        // Silencieux volontairement (voir commentaire au-dessus) : la
+        // section reste cachée, le reste du site n'est pas affecté.
+      });
+  })();
+
   /* ---------- Render: Desserts (liste partiellement dépliable) ---------- */
   (function renderDesserts() {
     const host = document.querySelector("[data-render='desserts']");
